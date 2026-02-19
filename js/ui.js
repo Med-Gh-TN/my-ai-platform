@@ -91,7 +91,7 @@ export function updateExecutiveMetrics(profit, rdSpend) {
     // Calculate ROI
     const roi = rdSpend > 0 ? ((profit - rdSpend) / rdSpend) * 100 : 0;
     roiDisplay.innerText = `${roi.toLocaleString(undefined, {maximumFractionDigits: 1})}%`;
-    roiDisplay.className = roi >= 0 ? "text-2xl font-bold text-cyan-400" : "text-2xl font-bold text-red-400";
+    roiDisplay.className = roi >= 0 ? "text-2xl font-bold text-cyan-400" : "text-2xl font-bold text-error";
 
     // Determine Market Tier
     if (profit > 500000000) tierDisplay.innerText = "Unicorn";
@@ -112,13 +112,10 @@ export function toggleModelFields(selectedModel, elements) {
     if (selectedModel === 'all_features') {
         dynamicFields.classList.remove('hidden');
         setTimeout(() => dynamicFields.classList.remove('opacity-0'), 10);
-        adminInput.setAttribute('required', 'true');
-        marketingInput.setAttribute('required', 'true');
+        // We removed the HTML 'required' attributes here to rely entirely on our custom glowing JS validation
     } else {
         dynamicFields.classList.add('opacity-0');
         setTimeout(() => dynamicFields.classList.add('hidden'), 300);
-        adminInput.removeAttribute('required');
-        marketingInput.removeAttribute('required');
         adminInput.value = '';
         marketingInput.value = '';
     }
@@ -129,6 +126,7 @@ export function toggleModelFields(selectedModel, elements) {
  */
 export function setPredictionState(state, elements) {
     const { predictBtn, spinner, statusDot, statusText, resultDisplay } = elements;
+    
     if (state === 'loading') {
         predictBtn.disabled = true;
         spinner.classList.remove('hidden');
@@ -146,9 +144,9 @@ export function setPredictionState(state, elements) {
     else if (state === 'error') {
         predictBtn.disabled = false;
         spinner.classList.add('hidden');
-        resultDisplay.innerText = "ERR";
-        statusDot.className = 'w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_#ef4444]';
-        statusText.innerText = 'Connection Failed';
-        statusText.className = 'text-xs uppercase font-mono tracking-wider text-red-400';
+        resultDisplay.innerText = "SYS_FAIL";
+        statusDot.className = 'w-3 h-3 rounded-full bg-error shadow-[0_0_10px_#ef4444]';
+        statusText.innerText = 'Connection Interrupted';
+        statusText.className = 'text-xs uppercase font-mono tracking-wider text-error';
     }
 }
