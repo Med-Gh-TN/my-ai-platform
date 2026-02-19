@@ -16,6 +16,14 @@ const oauthContainer = document.getElementById('oauth-container');
 const authTitle = document.getElementById('auth-title');
 const authSubtitle = document.getElementById('auth-subtitle');
 
+// Notification Elements (New Premium UI)
+const globalError = document.getElementById('global-error');
+const globalErrorText = document.getElementById('global-error-text');
+const globalSuccess = document.getElementById('global-success');
+const globalSuccessText = document.getElementById('global-success-text');
+const passwordLengthError = document.getElementById('password-length-error');
+const signupPasswordInput = document.getElementById('signup-password');
+
 // Toggle Links
 const showSignupBtn = document.getElementById('show-signup');
 const showLoginFromSignupBtn = document.getElementById('show-login-from-signup');
@@ -27,9 +35,31 @@ const googleBtn = document.getElementById('google-btn');
 
 let userEmail = '';
 
+// --- NOTIFICATION HELPERS ---
+function hideNotifications() {
+    globalError.classList.add('hidden');
+    globalSuccess.classList.add('hidden');
+    signupPasswordInput.classList.remove('input-error');
+    passwordLengthError.classList.add('hidden');
+}
+
+function showError(message) {
+    hideNotifications();
+    globalErrorText.innerText = message;
+    globalError.classList.remove('hidden');
+}
+
+function showSuccess(message) {
+    hideNotifications();
+    globalSuccessText.innerText = message;
+    globalSuccess.classList.remove('hidden');
+}
+
+
 // --- UI TOGGLE LOGIC ---
 // Helper function to hide all forms
 function hideAllForms() {
+    hideNotifications(); // Clear errors when switching screens
     loginForm.classList.add('hidden');
     signupForm.classList.add('hidden');
     resetForm.classList.add('hidden');
@@ -68,8 +98,17 @@ showResetBtn.addEventListener('click', (e) => {
 // --- 1. SIGN UP (Creates account & triggers OTP) ---
 signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    hideNotifications();
+    
     userEmail = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
+    const password = signupPasswordInput.value;
+
+    // Custom UI Validation for Password Length
+    if (password.length < 6) {
+        signupPasswordInput.classList.add('input-error');
+        passwordLengthError.classList.remove('hidden');
+        return; // Stop execution, don't ping database
+    }
 
     // Supabase SignUp
     const { data, error } = await supabase.auth.signUp({
@@ -78,7 +117,7 @@ signupForm.addEventListener('submit', async (e) => {
     });
 
     if (error) {
-        alert("Sign Up Error: " + error.message);
+        showError(error.message);
     } else {
         // Switch UI to OTP state for first-time verification
         hideAllForms();
@@ -93,6 +132,7 @@ signupForm.addEventListener('submit', async (e) => {
 // --- 2. OTP VERIFICATION (Only for first-time signups) ---
 otpForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    hideNotifications();
     const token = document.getElementById('otp').value;
 
     const { error } = await supabase.auth.verifyOtp({
@@ -102,7 +142,7 @@ otpForm.addEventListener('submit', async (e) => {
     });
 
     if (error) {
-        alert("Verification failed: " + error.message);
+        showError("Invalid clearance code. Please try again.");
     } else {
         // Success! Send them to the dashboard
         window.location.href = 'dashboard.html';
@@ -113,6 +153,8 @@ otpForm.addEventListener('submit', async (e) => {
 // --- 3. SIGN IN (Standard Password Login) ---
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    hideNotifications();
+    
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
 
@@ -122,7 +164,7 @@ loginForm.addEventListener('submit', async (e) => {
     });
 
     if (error) {
-        alert("Access Denied: " + error.message);
+        showError("Access Denied: " + error.message);
     } else {
         // Success! Send them to the dashboard
         window.location.href = 'dashboard.html';
@@ -133,24 +175,27 @@ loginForm.addEventListener('submit', async (e) => {
 // --- 4. PASSWORD RESET ---
 resetForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    hideNotifications();
+    
     const email = document.getElementById('reset-email').value;
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        // We'll redirect them back to the dashboard where they can update it
         redirectTo: window.location.origin + '/dashboard.html', 
     });
 
     if (error) {
-        alert("Reset Error: " + error.message);
+        showError("Error: " + error.message);
     } else {
-        alert("Recovery link sent! Please check your email inbox.");
-        returnToLogin(); // Send them back to the login screen
+        showSuccess("Recovery link sent! Please check your secure inbox.");
+        // We leave them on this screen so they can read the success message, 
+        // they can click "Return to Sign in" when ready.
     }
 });
 
 
-// --- 5. GOOGLE OAUTH (Untouched, works perfectly) ---
+// --- 5. GOOGLE OAUTH (Untouched) ---
 googleBtn.addEventListener('click', async () => {
+    hideNotifications();
     const dynamicRedirectUrl = window.location.href.replace('auth.html', 'dashboard.html');
     
     const { error } = await supabase.auth.signInWithOAuth({
@@ -159,5 +204,6 @@ googleBtn.addEventListener('click', async () => {
             redirectTo: dynamicRedirectUrl
         }
     });
-    if (error) alert("Google login failed: " + error.message);
+    
+    if (error) showError("Google authentication failed: " + error.message);
 });
