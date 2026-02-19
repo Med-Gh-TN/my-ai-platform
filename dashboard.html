@@ -25,6 +25,7 @@
                         secondary: '#a855f7', /* Purple */
                         accent: '#ec4899', /* Pink */
                         dark: '#020204',
+                        error: '#ef4444', /* Cyber Red */
                     },
                     animation: {
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -87,6 +88,22 @@
             background-color: #0f172a;
             color: white;
         }
+
+        /* Hide Number Input Spinners for a Cleaner Look */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+
+        /* Custom Input Focus Glow for Errors */
+        .input-error {
+            border-color: rgba(239, 68, 68, 0.5) !important;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important;
+        }
     </style>
 </head>
 <body class="antialiased selection:bg-primary selection:text-white min-h-screen relative overflow-x-hidden font-sans">
@@ -124,11 +141,16 @@
                 <i class="fa-solid fa-sliders"></i>
                 <span>SYSTEM CONFIGURATION</span>
             </div>
+            
+            <div id="dash-error" class="hidden mb-6 p-3 rounded-lg bg-error/10 border border-error/30 text-error text-xs font-mono shadow-[0_0_15px_rgba(239,68,68,0.15)] transition-all duration-300">
+                <i class="fa-solid fa-triangle-exclamation mr-2 animate-pulse"></i><span id="dash-error-text">System malfunction.</span>
+            </div>
+
             <h2 class="text-3xl font-bold mb-8 text-white">
                 Simulation Parameters
             </h2>
 
-            <form id="prediction-form" class="space-y-8">
+            <form id="prediction-form" class="space-y-8" novalidate>
                 <div class="space-y-3">
                     <label class="block text-xs font-mono text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <i class="fa-solid fa-network-wired text-secondary"></i> AI Architecture
@@ -151,6 +173,7 @@
                             <i class="fa-solid fa-flask text-primary"></i> R&D Spend ($)
                         </label>
                         <input type="number" id="rd_spend" min="0" step="any" required placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-mono placeholder:text-slate-700">
+                        <p id="rd-error" class="hidden mt-2 text-[10px] font-mono text-error uppercase tracking-wide"><i class="fa-solid fa-xmark mr-1"></i> R&D Spend is required</p>
                     </div>
 
                     <div id="dynamic-fields" class="space-y-5 hidden opacity-0 transition-opacity duration-300">
@@ -159,12 +182,14 @@
                                 <i class="fa-solid fa-building text-slate-500"></i> Administration Spend ($)
                             </label>
                             <input type="number" id="admin_spend" min="0" step="any" placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-secondary/50 focus:ring-1 focus:ring-secondary/50 transition-all font-mono placeholder:text-slate-700">
+                            <p id="admin-error" class="hidden mt-2 text-[10px] font-mono text-error uppercase tracking-wide"><i class="fa-solid fa-xmark mr-1"></i> Input required for All-Features model</p>
                         </div>
                         <div>
                             <label class="block text-xs font-mono text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                                 <i class="fa-solid fa-bullhorn text-slate-500"></i> Marketing Spend ($)
                             </label>
                             <input type="number" id="marketing_spend" min="0" step="any" placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-secondary/50 focus:ring-1 focus:ring-secondary/50 transition-all font-mono placeholder:text-slate-700">
+                            <p id="marketing-error" class="hidden mt-2 text-[10px] font-mono text-error uppercase tracking-wide"><i class="fa-solid fa-xmark mr-1"></i> Input required for All-Features model</p>
                         </div>
                     </div>
 
