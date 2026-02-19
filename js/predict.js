@@ -42,6 +42,7 @@ async function fetchNickname() {
     if (data && data.nickname) nicknameDisplay.innerText = data.nickname;
 }
 
+// Nickname Editing
 nicknameDisplay.addEventListener('click', async () => {
     const newName = prompt("Enter your new Agent Nickname:", nicknameDisplay.innerText);
     if (newName && newName.trim().length > 0) {
@@ -52,9 +53,20 @@ nicknameDisplay.addEventListener('click', async () => {
     }
 });
 
+// UPGRADED DISCONNECT LOGIC
+// We use location.replace to clear the history stack for maximum security
 logoutBtn.addEventListener('click', async () => {
-    await supabase.auth.signOut();
-    window.location.href = 'index.html';
+    try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        
+        // Hard redirect to clear session from memory
+        window.location.replace('index.html');
+    } catch (err) {
+        console.error("Logout failed:", err.message);
+        // Fallback redirect
+        window.location.href = 'index.html';
+    }
 });
 
 // ==========================================
