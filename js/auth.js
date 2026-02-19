@@ -54,10 +54,14 @@ otpForm.addEventListener('submit', async (e) => {
 
 // --- 3. GOOGLE OAUTH ---
 googleBtn.addEventListener('click', async () => {
+    // We dynamically replace auth.html with dashboard.html in the CURRENT exact URL path.
+    // This makes it work perfectly on local Live Server AND Vercel without hardcoding!
+    const dynamicRedirectUrl = window.location.href.replace('auth.html', 'dashboard.html');
+    
     const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: window.location.origin + '/dashboard.html'
+            redirectTo: dynamicRedirectUrl
         }
     });
     if (error) alert("Google login failed: " + error.message);
