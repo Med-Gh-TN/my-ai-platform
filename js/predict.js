@@ -1,20 +1,26 @@
 // frontend-vercel/js/predict.js
 import { supabase, requireAuth } from './supabase.js';
-// Added new executive UI imports
-import { animateValue, toggleModelFields, setPredictionState, updateExecutiveCharts, updateExecutiveMetrics } from './ui.js';
+import { 
+    animateValue, 
+    toggleModelFields, 
+    setPredictionState, 
+    updateExecutiveCharts, 
+    updateExecutiveMetrics,
+    updateDeltaAnalysis
+} from './ui.js';
 
 // ==========================================
 // 🔗 API CONFIGURATION
 // ==========================================
 const HUGGING_FACE_API_URL = 'https://thisisnemo-aii.hf.space/predict';
 
-// DOM Elements - Data
+// DOM Elements - Data & Auth
 const form = document.getElementById('prediction-form');
 const modelRadios = document.getElementsByName('model_type');
 const nicknameDisplay = document.getElementById('user-nickname');
 const logoutBtn = document.getElementById('logout-btn');
 
-// DOM Elements - Inputs & Premium Errors
+// DOM Elements - Inputs & Terminal Errors
 const rdInput = document.getElementById('rd_spend');
 const rdError = document.getElementById('rd-error');
 const adminInput = document.getElementById('admin_spend');
@@ -54,19 +60,30 @@ async function fetchNickname() {
 
 // Nickname Editing
 nicknameDisplay.addEventListener('click', async () => {
-    const newName = prompt("Enter your new Agent Nickname:", nicknameDisplay.innerText);
+    const newName = prompt("Enter your Terminal Alias:", nicknameDisplay.innerText);
     if (newName && newName.trim().length > 0) {
-        nicknameDisplay.innerText = "Updating...";
+        nicknameDisplay.innerText = "UPDATING...";
         const { error } = await supabase.from('profiles').update({ nickname: newName.trim() }).eq('id', currentUser.id);
         if (!error) nicknameDisplay.innerText = newName.trim();
         else fetchNickname();
     }
 });
 
-// UPGRADED DISCONNECT LOGIC
-logoutBtn.addEventListener('click', async () => {
-    await supabase.auth.signOut();
-    window.location.replace('index.html');
+// Nuke Disconnect Logic
+logoutBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    logoutBtn.innerHTML = 'SEVERING... <i class="fa-solid fa-spinner fa-spin"></i>';
+    logoutBtn.disabled = true;
+
+    try {
+        await supabase.auth.signOut();
+    } catch (error) {
+        console.error("Disconnect error:", error);
+    } finally {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.replace('index.html');
+    }
 });
 
 // ==========================================
@@ -75,11 +92,10 @@ logoutBtn.addEventListener('click', async () => {
 modelRadios.forEach(radio => {
     radio.addEventListener('change', (e) => {
         toggleModelFields(e.target.value, uiElements);
-        clearErrors(); // Hide errors if they switch models
+        clearErrors();
     });
 });
 
-// --- PREMIUM VALIDATION HELPER ---
 function clearErrors() {
     dashError.classList.add('hidden');
     rdInput.classList.remove('input-error');
@@ -90,9 +106,20 @@ function clearErrors() {
     marketingError.classList.add('hidden');
 }
 
+// Helper: Fetch logic isolated for clean dual-requesting
+async function fetchPrediction(payload) {
+    const response = await fetch(HUGGING_FACE_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    if (!response.ok) throw new Error(`API Connection Interrupted (${response.status})`);
+    return await response.json();
+}
+
 
 // ==========================================
-// 🧠 PREDICTION EXECUTION (Fetch to HF)
+// 🧠 PREDICTION EXECUTION & FINANCIAL MATH
 // ==========================================
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -101,7 +128,7 @@ form.addEventListener('submit', async (e) => {
     const selectedModel = document.querySelector('input[name="model_type"]:checked').value;
     let isValid = true;
 
-    // Custom UI Validation
+    // Strict Terminal Validation
     if (!rdInput.value || rdInput.value.trim() === '') {
         rdInput.classList.add('input-error');
         rdError.classList.remove('hidden');
@@ -121,46 +148,61 @@ form.addEventListener('submit', async (e) => {
         }
     }
 
-    // Stop execution if parameters are missing
     if (!isValid) return;
 
     setPredictionState('loading', uiElements);
 
-    const payload = {
-        model_type: selectedModel,
-        rd_spend: parseFloat(rdInput.value) || 0,
-        admin_spend: parseFloat(adminInput.value) || 0,
-        marketing_spend: parseFloat(marketingInput.value) || 0,
+    // Structure raw inputs for math derived later
+    const inputs = {
+        rd: parseFloat(rdInput.value) || 0,
+        admin: parseFloat(adminInput.value) || 0,
+        mkt: parseFloat(marketingInput.value) || 0
+    };
+
+    const basePayload = {
+        rd_spend: inputs.rd,
+        admin_spend: inputs.admin,
+        marketing_spend: inputs.mkt,
         state: document.getElementById('state').value
     };
 
     try {
-        const response = await fetch(HUGGING_FACE_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        let finalProfit = 0;
 
-        if (!response.ok) throw new Error(`API Connection Interrupted (${response.status})`);
+        // ⚡ DELTA ANALYSIS ENGINE ⚡
+        if (selectedModel === 'optimized') {
+            // Standard Single Request
+            const data = await fetchPrediction({ ...basePayload, model_type: 'optimized' });
+            finalProfit = data.predicted_profit;
+            updateDeltaAnalysis(null); // SOTA is active, no noise penalty
+        } else {
+            // Dual Request: We fetch BOTH to show the CEO the cost of noise
+            const [baselineData, sotaData] = await Promise.all([
+                fetchPrediction({ ...basePayload, model_type: 'all_features' }),
+                fetchPrediction({ ...basePayload, model_type: 'optimized' })
+            ]);
+            
+            finalProfit = baselineData.predicted_profit;
+            const optimizedProfit = sotaData.predicted_profit;
+            
+            // Calculate the financial deviation caused by Admin/Mkt features
+            const noisePenalty = optimizedProfit - finalProfit; 
+            updateDeltaAnalysis(noisePenalty);
+        }
 
-        const data = await response.json();
-        const finalProfit = data.predicted_profit || data.predicted_predicted_profit;
-
-        // 1. Animate the core profit number (with auto-scaling font)
-        animateValue(uiElements.resultDisplay, 0, finalProfit, 1000);
+        // 1. Core Oracle Animation
+        animateValue(uiElements.resultDisplay, 0, finalProfit, 1200);
         
-        // 2. Trigger the Executive Intelligence Suite
-        updateExecutiveCharts(finalProfit);
-        updateExecutiveMetrics(finalProfit, payload.rd_spend);
+        // 2. Derive Institutional Metrics (EBITDA, Risk, Burn Horizon)
+        updateExecutiveCharts(finalProfit, inputs);
+        updateExecutiveMetrics(finalProfit, inputs);
         
         setPredictionState('success', uiElements);
 
     } catch (error) {
-        console.error("Prediction Failed:", error);
+        console.error("Execution Failed:", error);
         setPredictionState('error', uiElements);
-        
-        // Trigger our custom glowing global error banner
-        dashErrorText.innerText = error.message || "System malfunction. Retrying connection.";
+        dashErrorText.innerText = error.message || "Subsystem offline. Retrying connection.";
         dashError.classList.remove('hidden');
     }
 });
