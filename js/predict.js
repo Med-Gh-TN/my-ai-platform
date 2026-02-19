@@ -117,7 +117,6 @@ async function fetchPrediction(payload) {
     return await response.json();
 }
 
-
 // ==========================================
 // 🧠 PREDICTION EXECUTION & FINANCIAL MATH
 // ==========================================
@@ -128,26 +127,34 @@ form.addEventListener('submit', async (e) => {
     const selectedModel = document.querySelector('input[name="model_type"]:checked').value;
     let isValid = true;
 
-    // Strict Terminal Validation
-    if (!rdInput.value || rdInput.value.trim() === '') {
+    // Strict Terminal Validation - Check for empty OR negative values
+    const rdVal = parseFloat(rdInput.value);
+    if (!rdInput.value || rdInput.value.trim() === '' || rdVal < 0) {
         rdInput.classList.add('input-error');
+        rdError.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> ${rdVal < 0 ? 'Cannot be negative' : 'Required input'}`;
         rdError.classList.remove('hidden');
         isValid = false;
     }
 
     if (selectedModel === 'all_features') {
-        if (!adminInput.value || adminInput.value.trim() === '') {
+        const adminVal = parseFloat(adminInput.value);
+        if (!adminInput.value || adminInput.value.trim() === '' || adminVal < 0) {
             adminInput.classList.add('input-error');
+            adminError.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> ${adminVal < 0 ? 'Cannot be negative' : 'Required for Baseline'}`;
             adminError.classList.remove('hidden');
             isValid = false;
         }
-        if (!marketingInput.value || marketingInput.value.trim() === '') {
+
+        const mktVal = parseFloat(marketingInput.value);
+        if (!marketingInput.value || marketingInput.value.trim() === '' || mktVal < 0) {
             marketingInput.classList.add('input-error');
+            marketingError.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> ${mktVal < 0 ? 'Cannot be negative' : 'Required for Baseline'}`;
             marketingError.classList.remove('hidden');
             isValid = false;
         }
     }
 
+    // Halt execution if any fields failed validation
     if (!isValid) return;
 
     setPredictionState('loading', uiElements);
