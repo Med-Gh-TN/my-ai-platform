@@ -1,11 +1,11 @@
 // frontend-vercel/js/predict.js
 import { supabase, requireAuth } from './supabase.js';
-import { animateValue, toggleModelFields, setPredictionState } from './ui.js';
+// Added new executive UI imports
+import { animateValue, toggleModelFields, setPredictionState, updateExecutiveCharts, updateExecutiveMetrics } from './ui.js';
 
 // ==========================================
 // 🔗 API CONFIGURATION
 // ==========================================
-// This is your live Hugging Face Space endpoint!
 const HUGGING_FACE_API_URL = 'https://thisisnemo-aii.hf.space/predict';
 
 // DOM Elements - Data
@@ -42,7 +42,6 @@ async function fetchNickname() {
     if (data && data.nickname) nicknameDisplay.innerText = data.nickname;
 }
 
-// Nickname Editing
 nicknameDisplay.addEventListener('click', async () => {
     const newName = prompt("Enter your new Agent Nickname:", nicknameDisplay.innerText);
     if (newName && newName.trim().length > 0) {
@@ -53,7 +52,6 @@ nicknameDisplay.addEventListener('click', async () => {
     }
 });
 
-// Logout
 logoutBtn.addEventListener('click', async () => {
     await supabase.auth.signOut();
     window.location.href = 'index.html';
@@ -76,10 +74,12 @@ form.addEventListener('submit', async (e) => {
 
     setPredictionState('loading', uiElements);
 
+    const rdValue = parseFloat(document.getElementById('rd_spend').value) || 0;
     const selectedModel = document.querySelector('input[name="model_type"]:checked').value;
+    
     const payload = {
         model_type: selectedModel,
-        rd_spend: parseFloat(document.getElementById('rd_spend').value) || 0,
+        rd_spend: rdValue,
         admin_spend: parseFloat(uiElements.adminInput.value) || 0,
         marketing_spend: parseFloat(uiElements.marketingInput.value) || 0,
         state: document.getElementById('state').value
@@ -97,7 +97,13 @@ form.addEventListener('submit', async (e) => {
         const data = await response.json();
         const finalProfit = data.predicted_profit || data.predicted_predicted_profit;
 
+        // 1. Animate the core profit number (with auto-scaling font)
         animateValue(uiElements.resultDisplay, 0, finalProfit, 1000);
+        
+        // 2. NEW: Trigger the Executive Intelligence Suite
+        updateExecutiveCharts(finalProfit);
+        updateExecutiveMetrics(finalProfit, rdValue);
+        
         setPredictionState('success', uiElements);
 
     } catch (error) {
@@ -106,5 +112,4 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-// Boot up
 init();
