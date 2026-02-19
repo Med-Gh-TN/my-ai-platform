@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         tailwind.config = {
@@ -117,7 +119,7 @@
 
     <main class="relative z-10 max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <div class="lg:col-span-5 glass-card p-8 rounded-3xl h-fit border-t border-l border-white/10 animate-float" style="animation-duration: 8s;">
+        <div class="lg:col-span-4 xl:col-span-5 glass-card p-8 rounded-3xl h-fit border-t border-l border-white/10 animate-float" style="animation-duration: 8s;">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono mb-6">
                 <i class="fa-solid fa-sliders"></i>
                 <span>SYSTEM CONFIGURATION</span>
@@ -191,24 +193,46 @@
             </form>
         </div>
 
-        <div class="lg:col-span-7 flex flex-col justify-center glass-panel p-12 rounded-3xl border-t border-l border-white/10 text-center relative overflow-hidden group shadow-2xl">
+        <div class="lg:col-span-8 xl:col-span-7 flex flex-col justify-between glass-panel p-8 md:p-12 rounded-3xl border-t border-l border-white/10 relative overflow-hidden group shadow-2xl h-full">
             <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
             
-            <p class="text-slate-400 font-mono text-sm uppercase tracking-[0.3em] mb-6 flex items-center justify-center gap-3">
-                <i class="fa-solid fa-chart-pie text-secondary"></i> Projected Valuation
-            </p>
-            
-            <div class="relative py-8">
-                <span class="text-4xl md:text-6xl text-primary font-bold align-top mr-2">$</span>
-                <span id="result-display" class="text-6xl md:text-8xl lg:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 text-glow tabular-nums transition-all duration-500">
-                    0.00
-                </span>
+            <div class="text-center z-10">
+                <div class="inline-flex items-center justify-center gap-3 px-6 py-2 mb-6 rounded-full bg-black/50 border border-white/10 backdrop-blur-md">
+                    <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500 shadow-[0_0_10px_rgba(100,116,139,0.5)] transition-colors duration-500"></div>
+                    <span id="status-text" class="text-xs text-slate-300 uppercase font-mono tracking-widest transition-colors duration-500">Awaiting Parameters</span>
+                </div>
+
+                <p class="text-slate-400 font-mono text-sm uppercase tracking-[0.3em] mb-2 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-chart-pie text-secondary"></i> Projected Valuation
+                </p>
+                
+                <div class="relative py-4 w-full flex justify-center items-start overflow-hidden">
+                    <span class="text-3xl md:text-5xl text-primary font-bold mr-2 mt-2">$</span>
+                    <span id="result-display" class="text-5xl md:text-7xl lg:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 text-glow tabular-nums transition-all duration-500 break-all w-full leading-tight">
+                        0.00
+                    </span>
+                </div>
             </div>
 
-            <div class="mt-12 inline-flex items-center justify-center gap-3 px-6 py-3 rounded-full bg-black/50 border border-white/10 mx-auto backdrop-blur-md">
-                <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500 shadow-[0_0_10px_rgba(100,116,139,0.5)]"></div>
-                <span id="status-text" class="text-xs text-slate-300 uppercase font-mono tracking-widest">Awaiting Parameters</span>
+            <div class="w-full h-48 md:h-56 mt-6 mb-8 relative glass-card rounded-2xl p-4 border border-white/5 flex items-center justify-center z-10">
+                <canvas id="growthChart" class="w-full h-full opacity-50 transition-opacity duration-500"></canvas>
             </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full z-10">
+                <div class="bg-black/40 border border-white/5 rounded-xl p-5 text-center shadow-inner hover:border-primary/30 transition-colors">
+                    <p class="text-[10px] text-slate-500 font-mono uppercase tracking-widest mb-2 flex justify-center items-center gap-2"><i class="fa-solid fa-arrow-trend-up text-primary"></i> Proj. ROI</p>
+                    <p id="roi-display" class="text-2xl font-bold text-white tabular-nums">--%</p>
+                </div>
+                <div class="bg-black/40 border border-white/5 rounded-xl p-5 text-center shadow-inner hover:border-secondary/30 transition-colors">
+                    <p class="text-[10px] text-slate-500 font-mono uppercase tracking-widest mb-2 flex justify-center items-center gap-2"><i class="fa-solid fa-trophy text-secondary"></i> Market Tier</p>
+                    <p id="tier-display" class="text-xl font-bold text-white mt-1">Pending</p>
+                </div>
+                <div class="bg-black/40 border border-white/5 rounded-xl p-5 text-center shadow-inner hover:border-accent/30 transition-colors">
+                    <p class="text-[10px] text-slate-500 font-mono uppercase tracking-widest mb-2 flex justify-center items-center gap-2"><i class="fa-solid fa-shield-halved text-accent"></i> Risk Index</p>
+                    <p id="risk-display" class="text-2xl font-bold text-white tabular-nums">--</p>
+                </div>
+            </div>
+
         </div>
 
     </main>
