@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulation Engine | AI Profit Predictor</title>
+    <title>Executive Command Center | AI Profit Predictor</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
@@ -21,15 +20,17 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        primary: '#06b6d4', /* Cyan */
-                        secondary: '#a855f7', /* Purple */
-                        accent: '#ec4899', /* Pink */
-                        dark: '#020204',
-                        error: '#ef4444', /* Cyber Red */
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'float': 'float 6s ease-in-out infinite',
+                        terminal: {
+                            bg: '#0a0a0c',        /* Deep Obsidian */
+                            panel: '#111116',     /* Slightly lighter for bento boxes */
+                            border: '#1f1f2e',
+                            text: '#8b949e',      /* Muted text */
+                            cyan: '#06b6d4',      /* Primary highlight */
+                            purple: '#8b5cf6',    /* AI highlight */
+                            green: '#10b981',     /* Positive financial */
+                            red: '#ef4444',       /* Negative/Risk */
+                            amber: '#f59e0b'      /* Warnings */
+                        }
                     }
                 }
             }
@@ -38,223 +39,282 @@
     
     <style>
         body {
-            background-color: #020204;
-            color: #ffffff;
+            background-color: #0a0a0c;
+            color: #e2e8f0;
+            overflow-x: hidden;
         }
 
-        /* The Grid Overlay */
+        /* JP Morgan / Terminal Grid Background */
         .grid-bg {
-            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            mask-image: radial-gradient(circle at center, black 70%, transparent 100%);
-            -webkit-mask-image: radial-gradient(circle at center, black 70%, transparent 100%);
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mask-image: radial-gradient(circle at top, black 30%, transparent 100%);
+            -webkit-mask-image: radial-gradient(circle at top, black 30%, transparent 100%);
         }
 
-        /* Premium Glass Card */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        /* Executive Panel Styling */
+        .exec-panel {
+            background: #111116;
+            border: 1px solid #1f1f2e;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            transition: border-color 0.3s ease;
         }
-
-        .glass-card {
-            background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .glass-card:hover {
+        .exec-panel:hover {
             border-color: rgba(6, 182, 212, 0.3);
-            box-shadow: 0 20px 40px -10px rgba(6, 182, 212, 0.15);
         }
 
-        .text-glow {
-            text-shadow: 0 0 30px rgba(6, 182, 212, 0.6);
+        /* Terminal Inputs */
+        input[type="number"], select {
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            font-variant-numeric: tabular-nums;
         }
-
-        /* Sleek Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
-        
-        /* Dropdown styling fix for dark mode */
-        select option {
-            background-color: #0f172a;
-            color: white;
-        }
-
-        /* Hide Number Input Spinners for a Cleaner Look */
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-        input[type="number"] {
-            -moz-appearance: textfield; /* Firefox */
+
+        .input-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.1) !important;
         }
 
-        /* Custom Input Focus Glow for Errors */
-        .input-error {
-            border-color: rgba(239, 68, 68, 0.5) !important;
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important;
-        }
+        /* Wall Street Blinking Dot */
+        .blink { animation: blink 1.5s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Custom Scrollbar for Terminal */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #1f1f2e; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
     </style>
 </head>
-<body class="antialiased selection:bg-primary selection:text-white min-h-screen relative overflow-x-hidden font-sans">
+<body class="antialiased font-sans selection:bg-terminal-cyan selection:text-black min-h-screen relative">
 
     <div class="fixed inset-0 z-[-1] pointer-events-none">
         <div class="grid-bg absolute inset-0"></div>
-        <div class="absolute top-[-10%] left-[-10%] w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] animate-pulse-slow"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[800px] h-[800px] bg-secondary/10 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+        <div class="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-terminal-purple/5 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-terminal-cyan/5 rounded-full blur-[120px]"></div>
     </div>
 
-    <nav class="sticky top-0 z-50 glass-panel border-b border-white/5 px-6 py-4 flex justify-between items-center bg-dark/50">
-        <div class="flex items-center gap-3 group cursor-default">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center font-bold text-lg shadow-[0_0_15px_rgba(34,211,238,0.4)] group-hover:scale-105 transition-transform">
-                <i class="fa-solid fa-chart-line text-white"></i>
+    <nav class="sticky top-0 z-50 exec-panel border-b border-t-0 border-l-0 border-r-0 px-6 py-3 flex justify-between items-center bg-[#0a0a0c]/80 backdrop-blur-lg">
+        <div class="flex items-center gap-4 cursor-default">
+            <div class="w-8 h-8 rounded bg-terminal-cyan/10 border border-terminal-cyan/30 flex items-center justify-center text-terminal-cyan shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+                <i class="fa-solid fa-layer-group text-sm"></i>
             </div>
-            <span class="font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-gray-100 to-gray-400">
-                PROFIT<span class="text-primary">ENGINE</span>
-            </span>
+            <div class="flex flex-col">
+                <span class="font-bold tracking-widest text-white text-sm">PROFIT<span class="text-terminal-cyan">ENGINE</span></span>
+                <span class="text-[9px] font-mono text-terminal-green tracking-widest uppercase"><span class="inline-block w-1.5 h-1.5 bg-terminal-green rounded-full mr-1 blink"></span>SECURE CONNECTION</span>
+            </div>
         </div>
         <div class="flex items-center gap-6">
-            <div class="text-sm text-slate-400 font-mono hidden md:block">
-                <i class="fa-solid fa-user-shield text-secondary mr-2"></i>
-                <span id="user-nickname" class="text-primary font-bold cursor-pointer hover:underline border-b border-primary/30 pb-0.5" title="Click to edit">Agent</span>
+            <div class="text-xs text-terminal-text font-mono hidden md:flex items-center gap-2 bg-terminal-panel px-3 py-1.5 rounded border border-terminal-border">
+                <i class="fa-solid fa-user-shield text-terminal-purple"></i>
+                <span id="user-nickname" class="text-white hover:text-terminal-cyan cursor-pointer transition-colors" title="Click to edit">Agent</span>
             </div>
-            <button id="logout-btn" class="px-5 py-2 rounded-full bg-white/5 hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-400 transition-all text-sm font-semibold border border-white/10 flex items-center gap-2">
-                Disconnect <i class="fa-solid fa-power-off text-xs"></i>
+            <button id="logout-btn" class="text-xs font-mono text-terminal-text hover:text-terminal-red transition-colors flex items-center gap-2 group">
+                DISCONNECT <i class="fa-solid fa-power-off opacity-50 group-hover:opacity-100"></i>
             </button>
         </div>
     </nav>
 
-    <main class="relative z-10 max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <main class="relative z-10 max-w-[1600px] mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <div class="lg:col-span-4 xl:col-span-5 glass-card p-8 rounded-3xl h-fit border-t border-l border-white/10 animate-float" style="animation-duration: 8s;">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-mono mb-6">
-                <i class="fa-solid fa-sliders"></i>
-                <span>SYSTEM CONFIGURATION</span>
-            </div>
+        <div class="lg:col-span-4 xl:col-span-3 flex flex-col gap-6">
             
-            <div id="dash-error" class="hidden mb-6 p-3 rounded-lg bg-error/10 border border-error/30 text-error text-xs font-mono shadow-[0_0_15px_rgba(239,68,68,0.15)] transition-all duration-300">
-                <i class="fa-solid fa-triangle-exclamation mr-2 animate-pulse"></i><span id="dash-error-text">System malfunction.</span>
-            </div>
-
-            <h2 class="text-3xl font-bold mb-8 text-white">
-                Simulation Parameters
-            </h2>
-
-            <form id="prediction-form" class="space-y-8" novalidate>
-                <div class="space-y-3">
-                    <label class="block text-xs font-mono text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <i class="fa-solid fa-network-wired text-secondary"></i> AI Architecture
-                    </label>
-                    <div class="grid grid-cols-2 gap-2 p-1.5 bg-black/40 rounded-xl border border-white/10 relative overflow-hidden">
-                        <label class="cursor-pointer relative z-10">
-                            <input type="radio" name="model_type" value="optimized" class="peer sr-only" checked>
-                            <div class="text-center py-3 rounded-lg text-sm font-bold text-slate-500 peer-checked:bg-primary/20 peer-checked:text-primary peer-checked:border-primary/50 border border-transparent transition-all">Optimized (SOTA)</div>
-                        </label>
-                        <label class="cursor-pointer relative z-10">
-                            <input type="radio" name="model_type" value="all_features" class="peer sr-only">
-                            <div class="text-center py-3 rounded-lg text-sm font-bold text-slate-500 peer-checked:bg-secondary/20 peer-checked:text-secondary peer-checked:border-secondary/50 border border-transparent transition-all">All-Features</div>
-                        </label>
-                    </div>
+            <div class="exec-panel p-6 rounded-2xl">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-widest">Parameters</h2>
+                    <i class="fa-solid fa-sliders text-terminal-text text-xs"></i>
                 </div>
 
-                <div class="space-y-5">
-                    <div>
-                        <label class="block text-xs font-mono text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                            <i class="fa-solid fa-flask text-primary"></i> R&D Spend ($)
-                        </label>
-                        <input type="number" id="rd_spend" min="0" step="any" required placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all font-mono placeholder:text-slate-700">
-                        <p id="rd-error" class="hidden mt-2 text-[10px] font-mono text-error uppercase tracking-wide"><i class="fa-solid fa-xmark mr-1"></i> R&D Spend is required</p>
-                    </div>
+                <div id="dash-error" class="hidden mb-6 p-3 rounded bg-terminal-red/10 border border-terminal-red/30 text-terminal-red text-[10px] font-mono shadow-[0_0_10px_rgba(239,68,68,0.1)]">
+                    <i class="fa-solid fa-triangle-exclamation mr-2 blink"></i><span id="dash-error-text">System malfunction.</span>
+                </div>
 
-                    <div id="dynamic-fields" class="space-y-5 hidden opacity-0 transition-opacity duration-300">
-                        <div>
-                            <label class="block text-xs font-mono text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                <i class="fa-solid fa-building text-slate-500"></i> Administration Spend ($)
+                <form id="prediction-form" class="space-y-6" novalidate>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-mono text-terminal-text uppercase tracking-widest">Core Engine</label>
+                        <div class="grid grid-cols-2 gap-1 p-1 bg-black rounded-lg border border-terminal-border">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="model_type" value="optimized" class="peer sr-only" checked>
+                                <div class="text-center py-2 rounded text-xs font-bold text-terminal-text peer-checked:bg-terminal-cyan/20 peer-checked:text-terminal-cyan peer-checked:border-terminal-cyan/50 border border-transparent transition-all">SOTA (Opt)</div>
                             </label>
-                            <input type="number" id="admin_spend" min="0" step="any" placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-secondary/50 focus:ring-1 focus:ring-secondary/50 transition-all font-mono placeholder:text-slate-700">
-                            <p id="admin-error" class="hidden mt-2 text-[10px] font-mono text-error uppercase tracking-wide"><i class="fa-solid fa-xmark mr-1"></i> Input required for All-Features model</p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-mono text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                <i class="fa-solid fa-bullhorn text-slate-500"></i> Marketing Spend ($)
+                            <label class="cursor-pointer">
+                                <input type="radio" name="model_type" value="all_features" class="peer sr-only">
+                                <div class="text-center py-2 rounded text-xs font-bold text-terminal-text peer-checked:bg-terminal-purple/20 peer-checked:text-terminal-purple peer-checked:border-terminal-purple/50 border border-transparent transition-all">Baseline</div>
                             </label>
-                            <input type="number" id="marketing_spend" min="0" step="any" placeholder="0.00" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-secondary/50 focus:ring-1 focus:ring-secondary/50 transition-all font-mono placeholder:text-slate-700">
-                            <p id="marketing-error" class="hidden mt-2 text-[10px] font-mono text-error uppercase tracking-wide"><i class="fa-solid fa-xmark mr-1"></i> Input required for All-Features model</p>
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-mono text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                            <i class="fa-solid fa-map-location-dot text-primary"></i> Operating State
-                        </label>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-mono text-terminal-text uppercase tracking-widest">Operating Sector</label>
                         <div class="relative">
-                            <select id="state" required class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all appearance-none cursor-pointer font-mono">
-                                <option value="California">California Matrix</option>
-                                <option value="New York">New York Hub</option>
-                                <option value="Florida">Florida Sector</option>
+                            <select id="state" required class="w-full bg-black border border-terminal-border rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-terminal-cyan transition-colors appearance-none cursor-pointer">
+                                <option value="California">California</option>
+                                <option value="New York">New York</option>
+                                <option value="Florida">Florida</option>
                             </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-400">
-                                <i class="fa-solid fa-chevron-down text-xs"></i>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-terminal-text">
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <button type="submit" id="predict-btn" class="w-full py-4 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-bold text-lg shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] transition-all transform hover:scale-[1.02] flex justify-center items-center gap-3">
-                    <span>Initialize Inference</span>
-                    <i class="fa-solid fa-microchip hidden group-hover:block"></i>
-                    <svg id="loading-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                </button>
-            </form>
-        </div>
+                    <div class="space-y-4 pt-2 border-t border-terminal-border">
+                        <div>
+                            <label class="block text-[10px] font-mono text-terminal-cyan uppercase tracking-widest mb-1.5 flex justify-between">
+                                <span>R&D Allocation</span> <span class="text-terminal-text">USD</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-terminal-text font-mono text-sm">$</span>
+                                <input type="number" id="rd_spend" min="0" step="any" required placeholder="0.00" class="w-full bg-black border border-terminal-border rounded-lg pl-7 pr-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-terminal-cyan transition-colors">
+                            </div>
+                            <p id="rd-error" class="hidden mt-1.5 text-[9px] font-mono text-terminal-red uppercase"><i class="fa-solid fa-xmark mr-1"></i> Required input</p>
+                        </div>
 
-        <div class="lg:col-span-8 xl:col-span-7 flex flex-col justify-between glass-panel p-8 md:p-12 rounded-3xl border-t border-l border-white/10 relative overflow-hidden group shadow-2xl h-full">
-            <div class="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                        <div id="dynamic-fields" class="space-y-4 hidden opacity-0 transition-opacity duration-300">
+                            <div>
+                                <label class="block text-[10px] font-mono text-terminal-purple uppercase tracking-widest mb-1.5 flex justify-between">
+                                    <span>Admin OpEx</span> <span class="text-terminal-text">USD</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-terminal-text font-mono text-sm">$</span>
+                                    <input type="number" id="admin_spend" min="0" step="any" placeholder="0.00" class="w-full bg-black border border-terminal-border rounded-lg pl-7 pr-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-terminal-purple transition-colors">
+                                </div>
+                                <p id="admin-error" class="hidden mt-1.5 text-[9px] font-mono text-terminal-red uppercase"><i class="fa-solid fa-xmark mr-1"></i> Required for Baseline</p>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-mono text-terminal-purple uppercase tracking-widest mb-1.5 flex justify-between">
+                                    <span>Marketing Spend</span> <span class="text-terminal-text">USD</span>
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-terminal-text font-mono text-sm">$</span>
+                                    <input type="number" id="marketing_spend" min="0" step="any" placeholder="0.00" class="w-full bg-black border border-terminal-border rounded-lg pl-7 pr-3 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-terminal-purple transition-colors">
+                                </div>
+                                <p id="marketing-error" class="hidden mt-1.5 text-[9px] font-mono text-terminal-red uppercase"><i class="fa-solid fa-xmark mr-1"></i> Required for Baseline</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="predict-btn" class="w-full py-3 rounded-lg bg-white text-black font-bold text-sm hover:bg-terminal-cyan transition-colors flex justify-center items-center gap-2 uppercase tracking-widest">
+                        <span>Execute Matrix</span>
+                        <i class="fa-solid fa-bolt"></i>
+                        <svg id="loading-spinner" class="animate-spin h-4 w-4 text-black hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </button>
+                </form>
+            </div>
             
-            <div class="text-center z-10">
-                <div class="inline-flex items-center justify-center gap-3 px-6 py-2 mb-6 rounded-full bg-black/50 border border-white/10 backdrop-blur-md">
-                    <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-slate-500 shadow-[0_0_10px_rgba(100,116,139,0.5)] transition-colors duration-500"></div>
-                    <span id="status-text" class="text-xs text-slate-300 uppercase font-mono tracking-widest transition-colors duration-500">Awaiting Parameters</span>
+            <div class="exec-panel p-4 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class="fa-brands fa-python text-terminal-text"></i>
+                    <div class="flex flex-col">
+                        <span class="text-[9px] text-terminal-text uppercase tracking-widest">HF Microservice</span>
+                        <span class="text-xs font-mono text-white">app.py (FastAPI)</span>
+                    </div>
                 </div>
+                <div class="text-[9px] font-mono text-terminal-green border border-terminal-green/30 bg-terminal-green/10 px-2 py-0.5 rounded flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-terminal-green rounded-full blink"></span> ONLINE
+                </div>
+            </div>
 
-                <p class="text-slate-400 font-mono text-sm uppercase tracking-[0.3em] mb-2 flex items-center justify-center gap-3">
-                    <i class="fa-solid fa-chart-pie text-secondary"></i> Projected Valuation
-                </p>
+        </div>
+        <div class="lg:col-span-8 xl:col-span-9 flex flex-col gap-6 h-full">
+            
+            <div class="exec-panel p-8 rounded-2xl relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-b from-terminal-cyan/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                 
-                <div class="relative py-4 w-full flex justify-center items-start overflow-hidden">
-                    <span class="text-3xl md:text-5xl text-primary font-bold mr-2 mt-2">$</span>
-                    <span id="result-display" class="text-5xl md:text-7xl lg:text-8xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 text-glow tabular-nums transition-all duration-500 break-all w-full leading-tight">
-                        0.00
-                    </span>
+                <div class="flex justify-between items-start z-10 relative">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-black border border-terminal-border mb-4 shadow-inner">
+                            <div id="status-dot" class="w-2 h-2 rounded-full bg-terminal-text"></div>
+                            <span id="status-text" class="text-[10px] text-terminal-text uppercase font-mono tracking-widest">Awaiting Parameters</span>
+                        </div>
+                        <p class="text-terminal-text font-mono text-[10px] uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-terminal-purple"></i> Projected Valuation (USD)
+                        </p>
+                        <div class="flex items-start">
+                            <span class="text-3xl text-terminal-cyan font-mono mt-2 mr-2">$</span>
+                            <span id="result-display" class="text-6xl md:text-8xl font-mono font-bold text-white tracking-tighter tabular-nums transition-all duration-500 truncate drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                                0.00
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="hidden md:flex flex-col gap-3 bg-black p-5 rounded-xl border border-terminal-border min-w-[220px] shadow-2xl">
+                        <div>
+                            <p class="text-[9px] text-terminal-text font-mono uppercase tracking-widest flex justify-between mb-1"><span>Proj. ROI</span> <i class="fa-solid fa-arrow-trend-up text-terminal-cyan"></i></p>
+                            <p id="roi-display" class="text-xl font-bold font-mono text-white tabular-nums">--%</p>
+                        </div>
+                        <div class="h-px w-full bg-terminal-border"></div>
+                        <div>
+                            <p class="text-[9px] text-terminal-text font-mono uppercase tracking-widest flex justify-between mb-1"><span>Est. EBITDA Margin</span> <i class="fa-solid fa-vault text-terminal-purple"></i></p>
+                            <p id="ebitda-display" class="text-xl font-bold font-mono text-white tabular-nums">--%</p>
+                        </div>
+                        <div class="h-px w-full bg-terminal-border"></div>
+                        <div>
+                            <p class="text-[9px] text-terminal-text font-mono uppercase tracking-widest flex justify-between mb-1"><span>OpEx / R&D Ratio</span> <i class="fa-solid fa-scale-balanced text-terminal-amber"></i></p>
+                            <p id="opex-ratio-display" class="text-xl font-bold font-mono text-white tabular-nums">--</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="w-full h-48 md:h-56 mt-6 mb-8 relative glass-card rounded-2xl p-4 border border-white/5 flex items-center justify-center z-10">
-                <canvas id="growthChart" class="w-full h-full opacity-50 transition-opacity duration-500"></canvas>
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 flex-1 min-h-[320px]">
+                
+                <div class="xl:col-span-2 exec-panel p-6 rounded-2xl flex flex-col relative group">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-widest font-mono flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-terminal-cyan"></i> Break-Even Horizon
+                        </h3>
+                        <span class="text-[9px] bg-black border border-terminal-border px-2 py-1 rounded text-terminal-text font-mono">5-Year Simulation</span>
+                    </div>
+                    <div class="relative flex-1 w-full min-h-[200px] bg-black/50 rounded-lg border border-terminal-border p-2">
+                        <canvas id="growthChart" class="absolute inset-0 w-full h-full opacity-50 group-hover:opacity-100 transition-opacity duration-500"></canvas>
+                    </div>
+                </div>
+
+                <div class="xl:col-span-1 exec-panel p-6 rounded-2xl flex flex-col items-center relative group">
+                    <div class="w-full flex justify-between items-center z-10 mb-2">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-widest font-mono">Risk Matrix</h3>
+                        <div id="risk-badge" class="text-[9px] bg-black border border-terminal-border px-2 py-1 rounded font-mono text-terminal-text">
+                            Pending
+                        </div>
+                    </div>
+                    <div class="relative w-full flex-1 min-h-[200px] flex items-center justify-center">
+                        <canvas id="riskChart" class="absolute inset-0 w-full h-full opacity-50 group-hover:opacity-100 transition-opacity duration-500"></canvas>
+                    </div>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full z-10">
-                <div class="bg-black/40 border border-white/5 rounded-xl p-5 text-center shadow-inner hover:border-primary/30 transition-colors">
-                    <p class="text-[10px] text-slate-500 font-mono uppercase tracking-widest mb-2 flex justify-center items-center gap-2"><i class="fa-solid fa-arrow-trend-up text-primary"></i> Proj. ROI</p>
-                    <p id="roi-display" class="text-2xl font-bold text-white tabular-nums">--%</p>
-                </div>
-                <div class="bg-black/40 border border-white/5 rounded-xl p-5 text-center shadow-inner hover:border-secondary/30 transition-colors">
-                    <p class="text-[10px] text-slate-500 font-mono uppercase tracking-widest mb-2 flex justify-center items-center gap-2"><i class="fa-solid fa-trophy text-secondary"></i> Market Tier</p>
-                    <p id="tier-display" class="text-xl font-bold text-white mt-1">Pending</p>
-                </div>
-                <div class="bg-black/40 border border-white/5 rounded-xl p-5 text-center shadow-inner hover:border-accent/30 transition-colors">
-                    <p class="text-[10px] text-slate-500 font-mono uppercase tracking-widest mb-2 flex justify-center items-center gap-2"><i class="fa-solid fa-shield-halved text-accent"></i> Risk Index</p>
-                    <p id="risk-display" class="text-2xl font-bold text-white tabular-nums">--</p>
+            <div class="exec-panel p-6 rounded-2xl relative overflow-hidden">
+                <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDIiLz4KPC9zdmc+')] opacity-50 pointer-events-none"></div>
+                
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+                    
+                    <div class="flex-1">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-widest font-mono flex items-center gap-2 mb-1">
+                            <i class="fa-solid fa-code-compare text-terminal-purple"></i> Delta Analysis
+                        </h3>
+                        <p class="text-[10px] text-terminal-text font-mono">Calculated spread between SOTA optimization and Baseline noise.</p>
+                    </div>
+
+                    <div class="flex items-center gap-4 w-full md:w-auto">
+                        <div class="bg-black border border-terminal-border rounded p-3 flex-1 md:w-36 shadow-inner">
+                            <p class="text-[9px] text-terminal-text uppercase tracking-widest mb-1">Market Tier</p>
+                            <p id="tier-display" class="text-sm font-bold text-white font-mono drop-shadow-md">Standby</p>
+                        </div>
+                        <div class="bg-black border border-terminal-border rounded p-3 flex-1 md:w-36 shadow-inner">
+                            <p class="text-[9px] text-terminal-text uppercase tracking-widest mb-1">Noise Penalty</p>
+                            <p id="penalty-display" class="text-sm font-bold text-terminal-red font-mono drop-shadow-md">--</p>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
