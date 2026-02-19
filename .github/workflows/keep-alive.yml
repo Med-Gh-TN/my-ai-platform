@@ -1,0 +1,28 @@
+# .github/workflows/keep-alive.yml
+name: HF Space Wake-Up Call
+
+# Trigger the workflow on a schedule and allow manual testing
+on:
+  schedule:
+    # Runs every 12 hours (00:00 and 12:00 UTC)
+    - cron: '0 */12 * * *'
+  
+  # workflow_dispatch allows you to click a "Run workflow" button in GitHub manually to test it
+  workflow_dispatch:
+
+jobs:
+  ping-huggingface:
+    name: Ping AI Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Execute Health Check Ping
+        run: |
+          echo "Pinging Nemo.ai API to prevent sleep mode..."
+          
+          # The -f flag fails the step if the server returns an error code
+          # The -s flag runs it silently (no download progress bar)
+          curl -f -s https://thisisnemo-aii.hf.space/
+          
+          echo ""
+          echo "Ping successful. The AI is awake."
